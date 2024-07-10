@@ -30,9 +30,8 @@ def one_post(post_id):
 
     if comment_form.validate_on_submit():
         new_comment = Comment(content=comment_form.content.data, author=current_user, origin_post=post)
-        db.session.add(new_comment)
         post.latest_comment = new_comment.id
-
+        db.session.add(new_comment)
         db.session.commit()
 
         comment_form.content.data = None
