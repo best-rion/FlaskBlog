@@ -2,22 +2,64 @@
 
 {% block content %}
 
-        <article class="media content-section d-flex">
-          <img src="{{ url_for('static', filename='images/' + post.author.image_file) }}" class="rounded-circle article-img" alt="Couldn't load image">
-          <div class="media-body">
-            <div class="article-metadata">
-              <a class="mr-2" href="{{ url_for('users.user_posts', username=post.author.username) }}">{{ post.author.username }}</a>
-              <small class="text-muted">{{ post.date_posted.strftime('%Y-%b-%d') }}</small>
-            {% if post.author == current_user %}
-              <div>
-                <a href="{{url_for('posts.update_post', post_id=post.id)}}" class="btn btn-secondary btn-sm my-1">Update</a>
-                <button type="button" class="btn btn-danger btn-sm m-1" data-bs-toggle="modal" data-bs-target="#deleteModal">Delete</button>
+        <article class="media content-section">
+          <div class="d-flex">
+              <img src="{{ url_for('static', filename='images/' + post.author.image_file) }}" class="rounded-circle article-img" alt="Couldn't load image">
+              <div class="media-body">
+                <div class="article-metadata">
+                  <a class="mr-2" href="{{ url_for('users.user_posts', username=post.author.username) }}">{{ post.author.username }}</a>
+                  <small class="text-muted">{{ post.date_posted.strftime('%Y-%b-%d') }}</small>
+                {% if post.author == current_user %}
+                  <div>
+                    <a href="{{url_for('posts.update_post', post_id=post.id)}}" class="btn btn-secondary btn-sm my-1">Update</a>
+                    <button type="button" class="btn btn-danger btn-sm m-1" data-bs-toggle="modal" data-bs-target="#deleteModal">Delete</button>
+                  </div>
+                {% endif %}
+                </div>
+                <h2><a class="article-title" href="#">{{ post.title }}</a></h2>
+                <p class="article-content">{{ post.content }}</p>
               </div>
-            {% endif %}
-            </div>
-            <h2 class="article-title">{{ post.title }}</h2>
-            <p class="article-content">{{ post.content }}</p>
           </div>
+
+          <h4 class="text-secondary">Comments</h4>
+
+
+          {% if current_user.is_authenticated %}
+              <div class="content-section">
+                <legend class="border-bottom mb-4 text-info">Post Comment</legend>
+                
+                  <form action="" method="post">
+                    {{ comment_form.hidden_tag() }}
+                    <div class="form-group">
+
+                      {% if comment_form.content.errors %}
+                          {{ comment_form.content(class="form-control form-control-lg is-invalid") }}
+                          <div class="invalid-feedback">
+                              {% for error in comment_form.content.errors %}
+                                  <span> {{ error }}</span>
+                              {% endfor %}
+                          </div>
+                      {% else %}
+                          {{ comment_form.content(class="form-control form-control-lg") }}
+                      {% endif %}
+                    </div>
+                    <div class="form-group pt-3">
+                        {{ comment_form.submit(class="btn btn-outline-info") }}
+                    </div>
+                  </form>
+              </div>
+          {% endif %}
+
+          {% for comment in comments %}
+            <div class="content-section bg-light">
+              <div class="d-flex">
+                <img height="40" width="40" src="{{ url_for('static', filename='images/' + comment.author.image_file) }}" class="rounded-circle" alt="Couldn't load image">
+                <h5 class="my-auto ms-2"><a href="{{ url_for('users.user_posts', username=comment.author.username) }}">{{ comment.author.username }}</a></h5>
+                <small class="my-auto ms-4">{{ comment.content }}</small>
+              </div>
+            </div>
+          {% endfor %}
+          
         </article>
 
 <!-- Modal -->

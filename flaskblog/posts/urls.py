@@ -3,10 +3,9 @@ from flask import (render_template, url_for, flash,
                    redirect, request, abort, Blueprint)
 from flask_login import current_user, login_required
 from flaskblog import db
-from flaskblog.models import Post
+from flaskblog.models import Post, Comment
 from flaskblog.posts.forms import PostForm
-
-
+from flaskblog.comments.forms import CommentForm
 posts = Blueprint('posts', __name__)
 
 
@@ -23,11 +22,25 @@ def new_post():
         return redirect(url_for('main.home'))
     return render_template('create_post.html', title='New Post', form=form)
 
-
-@posts.route("/post/<int:post_id>")
+@posts.route("/post/<int:post_id>", methods=['GET', 'POST'])
 def one_post(post_id):
     post = Post.query.get_or_404(post_id)
-    return render_template('post.html', title=post.title, post=post)
+    comments = Comment.query.filter_by(origin_post=post)
+    comment_form = CommentForm()
+
+    if comment_form.validate_on_submit():
+        new_comment = Comment(content=comment_form.content.data, author=current_user, origin_post=post)
+        db.session.add(new_comment)
+        post.latest_comment = new_comment.id
+
+        db.session.commit()
+
+        comment_form.content.data = None
+        flash('Comment posted !', 'success')
+
+        # return redirect(url_for('posts.one_post', post_id=post.id))
+
+    return render_template('post.html', title=post.title, post=post, comments=comments, comment_form=comment_form)
 
 
 @posts.route("/post/<int:post_id>/update", methods=['GET', 'POST'])
